@@ -1,0 +1,46 @@
+### ConnectorSense: Early Warning Monitoring for EV Charging Connector Degradation
+
+**The concept**
+
+Electric vehicles represent a step toward a cleaner future, but every charging session depends on a small yet critical component: the charging connector. With repeated use, connector contacts may wear down, increasing electrical contact resistance. Higher contact resistance can cause localized heating and may eventually affect charging safety and reliability.
+
+ConnectorSense is a low-cost electronic monitoring prototype designed to explore how electrical and temperature measurements can help identify early warning signs of connector degradation. The central idea is to look beyond temperature alone and investigate how changes in electrical behavior, combined with thermal trends, could provide useful maintenance warnings.
+
+**How the prototype works**
+
+The prototype uses an ESP32 microcontroller to collect sensor readings and send them to a Python-based dashboard. An INA226 module monitors bus voltage and provides a platform for electrical measurement, while two DS18B20 digital temperature sensors monitor the connector area and surrounding ambient temperature.
+
+The dashboard displays live readings, temperature differences, measurement history, and charts. It also demonstrates a health-monitoring algorithm in which increasing simulated contact resistance produces a decreasing health score and changes the status from HEALTHY to WATCH to ALERT.
+
+In the current prototype, voltage and temperature readings are obtained from the connected hardware. Resistance drift, health scores, and associated warning states are simulated to demonstrate the intended decision-making logic. Direct measurement of actual connector contact resistance remains a future development goal.
+
+**Components used and their roles**
+
+1. **ESP32 development board:** Acts as the main controller, reads sensor data, and communicates with the computer over USB serial.
+2. **INA226 voltage/current-monitoring module:** Provides bus-voltage measurements and supports current measurement through its shunt when correctly configured. The current-measurement path must be appropriately rated and validated before use.
+3. **Two DS18B20 temperature sensors:** One monitors the connector area and the other measures ambient temperature, allowing their readings to be compared.
+4. **XT60 connector pair:** Serves as the connector under observation in the low-voltage demonstration setup.
+5. **12 V DC power supply and load:** Provide the low-voltage electrical test setup. The circuit must be properly fused and checked for safe operation.
+6. **Computer running Python and Streamlit:** Hosts the dashboard, displays readings and trends, and supports data logging and CSV export.
+7. **USB and connecting wires:** Provide communication, sensor connections, and the required low-voltage circuit connections.
+
+**Technologies used**
+
+- Embedded programming with Arduino IDE and C/C++
+- ESP32 microcontroller platform
+- I²C communication with the INA226
+- OneWire communication with DS18B20 sensors
+- Python, Streamlit, PySerial, and Pandas
+- Serial data monitoring and CSV-based data handling
+
+**What makes ConnectorSense useful?**
+
+The prototype explores a practical predictive-maintenance concept: detecting small changes before they develop into larger problems. By combining electrical monitoring, connector-area temperature, ambient temperature, and a visual warning interface, ConnectorSense provides a foundation for studying connector health in a way that is understandable to technicians and users.
+
+**Future development**
+
+The next stage is to develop and validate a safe, calibrated method for measuring small changes in actual contact resistance. Further work would include repeatable testing, baseline calibration, evidence-based warning thresholds, and validation under different load conditions.
+
+**Our motivation**
+
+As first-year Electronics and Communication Engineering students, we want to apply what we learn in electronics and embedded systems to a real-world challenge. ConnectorSense is built around a simple belief: a small warning noticed early can help prevent a bigger failure later. Our goal is to contribute toward EV charging systems that people can trust as electric mobility becomes more widespread.
