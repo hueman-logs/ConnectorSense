@@ -1,0 +1,35 @@
+**Project Name:** ConnectorSense
+
+**Project Description**
+
+Electric vehicles are becoming an important part of a cleaner future, but the safety and reliability of their charging connections deserve equal attention. Over time, wear at a charging connector's contact surfaces can increase electrical contact resistance, potentially causing localized heating before an obvious failure occurs.
+
+**ConnectorSense** is a student-built prototype exploring how low-cost electronics and real-time monitoring can help identify early warning signs of charging-connector degradation. Using an ESP32 microcontroller, an INA226 voltage and current-sensing module, and DS18B20 temperature sensors, the prototype collects electrical and temperature data and displays them through a Python-based monitoring dashboard.
+
+Our approach is inspired by a simple idea: detecting a small warning early may help prevent a much larger problem later. The dashboard demonstrates how changing resistance values could influence a health score and trigger HEALTHY, WATCH, or ALERT states.
+
+At the current stage, voltage and temperature readings are monitored live, while resistance changes and health scores are simulated to demonstrate the decision-making logic. Validated measurement of actual connector contact resistance is a future development milestone.
+
+As first-year Electronics and Communication Engineering students, we aim to develop this concept further into an affordable, accessible monitoring solution that could contribute to safer EV charging and greater user confidence.
+
+**Technologies Used**
+- ESP32 microcontroller
+- INA226 electrical measurement module
+- DS18B20 digital temperature sensors
+- Arduino IDE and embedded C/C++
+- Python and Streamlit for the live dashboard
+- PySerial for serial communication
+- Pandas for data handling and CSV export
+- GitHub for source-code management
+
+**Key Features**
+1. **Live Sensor Monitoring:** Displays voltage and temperature readings from the connected prototype.
+2. **Temperature Comparison:** Compares connector-area and ambient temperatures to help observe thermal changes.
+3. **Demonstration Health Logic:** Shows how simulated resistance drift can affect a health score and trigger HEALTHY, WATCH, and ALERT states.
+4. **Real-Time Dashboard:** Presents readings, trends, status indicators, and measurement history in a user-friendly interface.
+5. **Data Logging and Export:** Supports reviewing recorded data and exporting it as a CSV file.
+6. **Modular and Expandable Design:** Provides a foundation for future validated contact-resistance measurement, calibration, and improved degradation detection.
+
+**Current Prototype Status and Future Scope**
+
+The current prototype demonstrates live voltage and temperature monitoring with a software-based degradation scenario. Resistance values and associated health scores are simulated, not directly measured. Future work will focus on validating a safe, calibrated contact-resistance measurement method, testing repeatability, and developing evidence-based warning thresholds.
