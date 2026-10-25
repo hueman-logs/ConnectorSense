@@ -1,0 +1,123 @@
+
+import streamlit as st
+import pandas as pd
+import serial
+import serial.tools.list_ports
+import re
+import time
+from datetime import datetime
+
+st.set_page_config(page_title="ConnectorSense", page_icon="⚡", layout="wide")
+st.title("⚡ ConnectorSense")
+st.caption("EV charging connector degradation monitoring — prototype")
+
+st.warning(
+    "Resistance and health score are simulated demo values. "
+    "Temperature readings are from your DS18B20 probes."
+)
+
+ports = list(serial.tools.list_ports.comports())
+port_names = [p.device for p in ports]
+
+if not port_names:
+    st.error("No serial ports found. Connect your ESP32 using USB.")
+    st.stop()
+
+port = st.selectbox("Select ESP32 serial port", port_names)
+baud = st.selectbox("Baud rate", [9600, 115200], index=0)
+
+if "running" not in st.session_state:
+    st.session_state.running = False
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+col1, col2 = st.columns(2)
+if col1.button("Start monitoring"):
+    st.session_state.running = True
+if col2.button("Stop monitoring"):
+    st.session_state.running = False
+
+def parse_reading(line):
+    patterns = {
+        "bus": r"Bus voltage:\s*([-\d.]+)",
+        "shunt": r"Shunt voltage:\s*([-\d.]+)",
+        "connector": r"Connector temperature:\s*([-\d.]+)",
+        "ambient": r"Ambient temperature:\s*([-\d.]+)",
+        "delta": r"Temperature difference:\s*([-\d.]+)",
+        "resistance": r"SIMULATED resistance:\s*([-\d.]+)",
+        "ratio": r"SIMULATED resistance ratio:\s*([-\d.]+)",
+        "score": r"DEMO health score:\s*(\d+)",
+        "status": r"DEMO status:\s*(HEALTHY|WATCH|ALERT)"
+    }
+    result = {}
+    for key, pattern in patterns.items():
+        match = re.search(pattern, line)
+        if match:
+            result[key] = (
+                match.group(1) if key == "status"
+                else float(match.group(1))
+            )
+    return result
+
+st.subheader("Live measurements")
+status_area = st.empty()
+metrics_area = st.empty()
+chart_area = st.empty()
+log_area = st.empty()
+
+if st.session_state.running:
+    try:
+        with serial.Serial(port, baud, timeout=0.5) as ser:
+            st.info("Reading ESP32 data. Keep Serial Monitor closed.")
+            buffer = {}
+            start = time.time()
+            while st.session_state.running:
+                line = ser.readline().decode("utf-8", errors="ignore").strip()
+                if line:
+                    values = parse_reading(line)
+                    buffer.update(values)
+
+                    if "status" in values and "score" in buffer:
+                        row = {
+                            "time": datetime.now(),
+                            **buffer
+                        }
+                        st.session_state.history.append(row)
+                        st.session_state.history = st.session_state.history[-300:]
+                        buffer = {}
+
+                        df = pd.DataFrame(st.session_state.history)
+                        latest = df.iloc[-1]
+
+                        status_area.markdown(
+                            f"### Status: **{latest.get('status', 'WAITING')}**"
+                        )
+                        with metrics_area.container():
+                            a, b, c = st.columns(3)
+                            a.metric("Health score (demo)", f"{latest.get('score', 0):.0f}/100")
+                            b.metric("Connector temperature", f"{latest.get('connector', 0):.2f} °C")
+                            c.metric("Ambient temperature", f"{latest.get('ambient', 0):.2f} °C")
+
+                            d, e, f = st.columns(3)
+                            d.metric("Temperature difference", f"{latest.get('delta', 0):.2f} °C")
+                            e.metric("Resistance (simulated)", f"{latest.get('resistance', 0):.3f} Ω")
+                            f.metric("Resistance ratio (simulated)", f"{latest.get('ratio', 0):.2f}×")
+
+                        if "time" in df and "connector" in df:
+                            chart_area.line_chart(
+                                df.set_index("time")[["connector", "ambient"]]
+                            )
+                        log_area.dataframe(df.tail(10), use_container_width=True)
+
+                if time.time() - start > 3600:
+                    st.warning("Monitoring session reached one hour.")
+                    break
+
+    except serial.SerialException as exc:
+        st.error(f"Serial connection error: {exc}")
+        st.info("Close Arduino Serial Monitor and check the selected COM port.")
+else:
+    st.info("Select your ESP32 COM port and click Start monitoring.")
+    if st.session_state.history:
+        df = pd.DataFrame(st.session_state.history)
+        st.line_chart(df.set_index("time")[["connector", "ambient"]])
